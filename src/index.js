@@ -2,20 +2,38 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import * as serviceWorker from './serviceWorker';
-import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
+import {
+  Switch,
+  Route,
+  Link,
+  BrowserRouter,
+  withRouter,
+} from 'react-router-dom';
 let admin_api_url = 'https://vps.scratchyone.com/admin';
-//let todo_http_api_url = 'https://vps.scratchyone.com/admin';
+let todo_http_api_url = 'https://vps.scratchyone.com/todo';
 if (
   window.location.hostname === 'localhost' ||
   window.location.hostname === '127.0.0.1'
 )
   admin_api_url = 'http://localhost:98';
-/*if (
+if (
   window.location.hostname === 'localhost' ||
   window.location.hostname === '127.0.0.1'
 )
-  //todo_http_api_url = 'http://localhost:100';*/
+  todo_http_api_url = 'http://localhost:100';
 
+function setCookie(name, value, daysToLive) {
+  // Encode value in order to escape semicolons, commas, and whitespace
+  var cookie = name + '=' + encodeURIComponent(value);
+
+  if (typeof daysToLive === 'number') {
+    /* Sets the max-age attribute so that the cookie expires
+      after the specified number of days */
+    cookie += '; max-age=' + daysToLive * 24 * 60 * 60;
+
+    document.cookie = cookie;
+  }
+}
 function getCookie(name) {
   // Split cookie string and get all individual name=value pairs in an array
   var cookieArr = document.cookie.split(';');
@@ -39,19 +57,27 @@ function getCookie(name) {
 class App extends React.Component {
   render() {
     return (
-      <Router>
-        <div>
-          <h1 className="text-3xl pl-4 pt-2 bg-gray-400 rounded-b-lg">
+      <div>
+        <div className="bg-gray-400 rounded-b-lg w-full">
+          <span className="text-3xl pl-4 pt-2">
             <Link to="/">To-Do Admin Page</Link>
-          </h1>
-          <Switch>
-            <Route exact path="/">
-              <Users />
-            </Route>
-            <Route path="/user/:username" component={User} />
-          </Switch>
+          </span>
+          <button
+            onClick={() => {
+              setCookie('token', null, 10);
+            }}
+            className="text-1xl pl-4 pt-2"
+          >
+            Logout
+          </button>
         </div>
-      </Router>
+        <Switch>
+          <Route exact path="/">
+            <Users />
+          </Route>
+          <Route path="/user/:username" component={User} />
+        </Switch>
+      </div>
     );
   }
 }
@@ -59,7 +85,14 @@ class App extends React.Component {
 class Users extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { users: [], token: getCookie('token'), valid: false };
+    this.passChange = this.passChange.bind(this);
+    this.login = this.login.bind(this);
+    this.state = {
+      users: [],
+      token: getCookie('token'),
+      valid: null,
+      value: '',
+    };
   }
   componentDidMount() {
     if (this.state.token != null) {
@@ -75,15 +108,39 @@ class Users extends React.Component {
           console.log(data);
           if (!data.error) {
             this.setState({ users: data.users, valid: true });
+          } else {
+            this.setState({ valid: false });
           }
         });
+    } else {
+      this.setState({ valid: false });
     }
+  }
+  passChange(event) {
+    this.setState({ value: event.target.value });
+  }
+  login() {
+    fetch(todo_http_api_url + '/login', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({ username: 'admin', password: this.state.value }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data);
+        if (!data.error) {
+          this.setState({ token: data.response.token, valid: true });
+          setCookie('token', data.response.token, 10);
+          this.componentDidMount();
+        }
+      });
   }
   render() {
     return (
       <div>
-        {' '}
-        <div className={this.state.valid ? '' : 'invisible'}>
+        <div className={this.state.valid !== false ? '' : 'invisible'}>
           <span className="ml-2 mt-4 text-3xl">Users</span>
           <span>
             {this.state.users.map((x) => (
@@ -93,8 +150,20 @@ class Users extends React.Component {
             ))}
           </span>
         </div>
-        <div className={this.state.valid ? 'invisible' : ''}>
-          You must be logged in as an admin to view this page
+        <div className={this.state.valid === false ? '' : 'invisible'}>
+          You must be logged in as an admin to view this page<br></br>
+          <input
+            type="password"
+            value={this.state.value}
+            onChange={this.passChange}
+            className="m-2 border rounded-sm border-black border-5"
+          ></input>
+          <button
+            onClick={this.login}
+            className="m-2 border rounded-sm border-black border-5 bg-gray-100"
+          >
+            Login
+          </button>
         </div>
       </div>
     );
@@ -141,11 +210,13 @@ class User extends React.Component {
     );
   }
 }
-
+App = withRouter(App);
 ReactDOM.render(
-  <div>
-    <App></App>
-  </div>,
+  <BrowserRouter basename="/todo_admin">
+    <div>
+      <App />
+    </div>
+  </BrowserRouter>,
   document.getElementById('root')
 );
 
