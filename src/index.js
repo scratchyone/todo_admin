@@ -9,30 +9,18 @@ import {
   BrowserRouter,
   withRouter,
 } from 'react-router-dom';
-let admin_api_url = 'https://vps.scratchyone.com/todo/admin';
-let todo_http_api_url = 'https://vps.scratchyone.com/todo/todo';
+let api_url = 'https://vps.scratchyone.com/todo/admin';
 if (
   window.location.hostname === 'localhost' ||
   window.location.hostname === '127.0.0.1'
 )
-  admin_api_url = 'http://localhost/admin';
-if (
-  window.location.hostname === 'localhost' ||
-  window.location.hostname === '127.0.0.1'
-)
-  todo_http_api_url = 'http://localhost/todo';
+  api_url = 'http://localhost:99';
 
 function setCookie(name, value, daysToLive) {
   // Encode value in order to escape semicolons, commas, and whitespace
   var cookie = name + '=' + encodeURIComponent(value);
 
-  if (typeof daysToLive === 'number') {
-    /* Sets the max-age attribute so that the cookie expires
-      after the specified number of days */
-    cookie += '; max-age=' + daysToLive * 24 * 60 * 60;
-
-    document.cookie = cookie;
-  }
+  document.cookie = cookie;
 }
 function getCookie(name) {
   // Split cookie string and get all individual name=value pairs in an array
@@ -87,16 +75,21 @@ class Users extends React.Component {
     super(props);
     this.passChange = this.passChange.bind(this);
     this.login = this.login.bind(this);
+    this.messageChange = this.messageChange.bind(this);
+    this.blockChange = this.blockChange.bind(this);
+    this.addMessage = this.addMessage.bind(this);
     this.state = {
       users: [],
       token: getCookie('token'),
       valid: null,
       value: '',
+      message: '',
+      block: false,
     };
   }
   componentDidMount() {
     if (this.state.token != null) {
-      fetch(admin_api_url + '/users', {
+      fetch(api_url + '/admin/users', {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
@@ -119,8 +112,31 @@ class Users extends React.Component {
   passChange(event) {
     this.setState({ value: event.target.value });
   }
+  messageChange(event) {
+    this.setState({ message: event.target.value });
+  }
+  blockChange(event) {
+    this.setState({ block: event.target.checked });
+  }
+  addMessage() {
+    fetch(api_url + '/message/add_message', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        token: this.state.token,
+        message: this.state.message,
+        block: this.state.block,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data);
+      });
+  }
   login() {
-    fetch(todo_http_api_url + '/login', {
+    fetch(api_url + '/todo/login', {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
@@ -141,6 +157,20 @@ class Users extends React.Component {
     return (
       <div>
         <div className={this.state.valid === true ? '' : 'invisible'}>
+          <input
+            type="text"
+            value={this.state.message}
+            onChange={this.messageChange}
+            className="m-2 border rounded-sm border-black border-5"
+          ></input>
+          <input type="checkbox" onChange={this.blockChange}></input>
+          <button
+            onClick={this.addMessage}
+            className="m-2 border rounded-sm border-black border-5 bg-gray-100"
+          >
+            Send
+          </button>
+          <br></br>
           <span className="ml-2 mt-4 text-3xl">Users</span>
           <span>
             {this.state.users.map((x) => (
@@ -177,7 +207,7 @@ class User extends React.Component {
   }
   componentDidMount() {
     if (this.state.token != null) {
-      fetch(admin_api_url + '/user', {
+      fetch(api_url + '/admin/user', {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
