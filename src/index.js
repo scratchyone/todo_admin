@@ -4,17 +4,17 @@ import './index.css';
 import * as serviceWorker from './serviceWorker';
 import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
 let admin_api_url = 'https://vps.scratchyone.com/todo';
-let todo_http_api_url = 'https://vps.scratchyone.com/admin';
+//let todo_http_api_url = 'https://vps.scratchyone.com/admin';
 if (
   window.location.hostname === 'localhost' ||
   window.location.hostname === '127.0.0.1'
 )
   admin_api_url = 'http://localhost:98';
-if (
+/*if (
   window.location.hostname === 'localhost' ||
   window.location.hostname === '127.0.0.1'
 )
-  todo_http_api_url = 'http://localhost:100';
+  //todo_http_api_url = 'http://localhost:100';*/
 
 function getCookie(name) {
   // Split cookie string and get all individual name=value pairs in an array
@@ -64,7 +64,6 @@ class Users extends React.Component {
   componentDidMount() {
     if (this.state.token != null) {
       fetch(admin_api_url + '/users', {
-        body: JSON.stringify({ token: this.token }),
         method: 'POST',
         headers: {
           'content-type': 'application/json',
@@ -110,7 +109,6 @@ class User extends React.Component {
   componentDidMount() {
     if (this.state.token != null) {
       fetch(admin_api_url + '/user', {
-        body: JSON.stringify({ token: this.token }),
         method: 'POST',
         headers: {
           'content-type': 'application/json',
