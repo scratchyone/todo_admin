@@ -9,18 +9,18 @@ import {
   BrowserRouter,
   withRouter,
 } from 'react-router-dom';
-let admin_api_url = 'https://vps.scratchyone.com/admin';
-let todo_http_api_url = 'https://vps.scratchyone.com/todo';
+let admin_api_url = 'https://vps.scratchyone.com/todo/admin';
+let todo_http_api_url = 'https://vps.scratchyone.com/todo/todo';
 if (
   window.location.hostname === 'localhost' ||
   window.location.hostname === '127.0.0.1'
 )
-  admin_api_url = 'http://localhost:98';
+  admin_api_url = 'http://localhost/admin';
 if (
   window.location.hostname === 'localhost' ||
   window.location.hostname === '127.0.0.1'
 )
-  todo_http_api_url = 'http://localhost:100';
+  todo_http_api_url = 'http://localhost/todo';
 
 function setCookie(name, value, daysToLive) {
   // Encode value in order to escape semicolons, commas, and whitespace
