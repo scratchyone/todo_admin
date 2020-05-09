@@ -140,7 +140,7 @@ class Users extends React.Component {
   render() {
     return (
       <div>
-        <div className={this.state.valid !== false ? '' : 'invisible'}>
+        <div className={this.state.valid === true ? '' : 'invisible'}>
           <span className="ml-2 mt-4 text-3xl">Users</span>
           <span>
             {this.state.users.map((x) => (
