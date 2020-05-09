@@ -9,7 +9,7 @@ import {
   BrowserRouter,
   withRouter,
 } from 'react-router-dom';
-let api_url = 'https://vps.scratchyone.com/todo/admin';
+let api_url = 'https://vps.scratchyone.com/todo';
 if (
   window.location.hostname === 'localhost' ||
   window.location.hostname === '127.0.0.1'
