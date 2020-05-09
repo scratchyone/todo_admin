@@ -3,8 +3,18 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import * as serviceWorker from './serviceWorker';
 import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
-const admin_api_url = 'http://localhost:98';
-const todo_http_api_url = 'http://localhost:100';
+let admin_api_url = 'https://vps.scratchyone.com/todo';
+let todo_http_api_url = 'https://vps.scratchyone.com/admin';
+if (
+  window.location.hostname === 'localhost' ||
+  window.location.hostname === '127.0.0.1'
+)
+  admin_api_url = 'http://localhost:98';
+if (
+  window.location.hostname === 'localhost' ||
+  window.location.hostname === '127.0.0.1'
+)
+  todo_http_api_url = 'http://localhost:100';
 
 function getCookie(name) {
   // Split cookie string and get all individual name=value pairs in an array
@@ -49,7 +59,7 @@ class App extends React.Component {
 class Users extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { users: [], token: getCookie('token') };
+    this.state = { users: [], token: getCookie('token'), valid: false };
   }
   componentDidMount() {
     if (this.state.token != null) {
@@ -65,7 +75,7 @@ class Users extends React.Component {
         .then((data) => {
           console.log(data);
           if (!data.error) {
-            this.setState({ users: data.users });
+            this.setState({ users: data.users, valid: true });
           }
         });
     }
@@ -73,14 +83,20 @@ class Users extends React.Component {
   render() {
     return (
       <div>
-        <span className="ml-2 mt-4 text-3xl">Users</span>
-        <span>
-          {this.state.users.map((x) => (
-            <div className="ml-2 lext-md">
-              <Link to={'user/' + x}>{x}</Link>
-            </div>
-          ))}
-        </span>
+        {' '}
+        <div className={this.state.valid ? '' : 'invisible'}>
+          <span className="ml-2 mt-4 text-3xl">Users</span>
+          <span>
+            {this.state.users.map((x) => (
+              <div className="ml-2 lext-md">
+                <Link to={'user/' + x}>{x}</Link>
+              </div>
+            ))}
+          </span>
+        </div>
+        <div className={this.state.valid ? 'invisible' : ''}>
+          You must be logged in as an admin to view this page
+        </div>
       </div>
     );
   }
