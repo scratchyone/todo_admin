@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import * as serviceWorker from './serviceWorker';
 import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
-let admin_api_url = 'https://vps.scratchyone.com/todo';
+let admin_api_url = 'https://vps.scratchyone.com/admin';
 //let todo_http_api_url = 'https://vps.scratchyone.com/admin';
 if (
   window.location.hostname === 'localhost' ||
