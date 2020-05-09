@@ -1,13 +1,137 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-import App from './App';
 import * as serviceWorker from './serviceWorker';
+import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
+const admin_api_url = 'http://localhost:98';
+const todo_http_api_url = 'http://localhost:100';
+
+function getCookie(name) {
+  // Split cookie string and get all individual name=value pairs in an array
+  var cookieArr = document.cookie.split(';');
+
+  // Loop through the array elements
+  for (var i = 0; i < cookieArr.length; i++) {
+    var cookiePair = cookieArr[i].split('=');
+
+    /* Removing whitespace at the beginning of the cookie name
+      and compare it with the given string */
+    if (name === cookiePair[0].trim()) {
+      // Decode the cookie value and return
+      return decodeURIComponent(cookiePair[1]);
+    }
+  }
+
+  // Return null if not found
+  return null;
+}
+
+class App extends React.Component {
+  render() {
+    return (
+      <Router>
+        <div>
+          <h1 className="text-3xl pl-4 pt-2 bg-gray-400 rounded-b-lg">
+            <Link to="/">To-Do Admin Page</Link>
+          </h1>
+          <Switch>
+            <Route exact path="/">
+              <Users />
+            </Route>
+            <Route path="/user/:username" component={User} />
+          </Switch>
+        </div>
+      </Router>
+    );
+  }
+}
+
+class Users extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { users: [], token: getCookie('token') };
+  }
+  componentDidMount() {
+    if (this.state.token != null) {
+      fetch(admin_api_url + '/users', {
+        body: JSON.stringify({ token: this.token }),
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ token: this.state.token }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log(data);
+          if (!data.error) {
+            this.setState({ users: data.users });
+          }
+        });
+    }
+  }
+  render() {
+    return (
+      <div>
+        <span className="ml-2 mt-4 text-3xl">Users</span>
+        <span>
+          {this.state.users.map((x) => (
+            <div className="ml-2 lext-md">
+              <Link to={'user/' + x}>{x}</Link>
+            </div>
+          ))}
+        </span>
+      </div>
+    );
+  }
+}
+
+class User extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { todos: [], token: getCookie('token') };
+  }
+  componentDidMount() {
+    if (this.state.token != null) {
+      fetch(admin_api_url + '/user', {
+        body: JSON.stringify({ token: this.token }),
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          token: this.state.token,
+          username: this.props.match.params.username,
+        }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log(data);
+          if (!data.error) {
+            this.setState({ todos: data.users });
+          }
+        });
+    }
+  }
+  render() {
+    let username = this.props.match.params.username;
+    return (
+      <div>
+        <span className="ml-2 mt-4 text-3xl">{username}</span>
+        {this.state.todos.map((x) => (
+          <div className={'ml-2 lext-md ' + (x.done ? 'line-through' : '')}>
+            {x.todo}
+          </div>
+        ))}
+      </div>
+    );
+  }
+}
 
 ReactDOM.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
+  <div>
+    <App></App>
+  </div>,
   document.getElementById('root')
 );
 
